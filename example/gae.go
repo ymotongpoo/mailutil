@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"appengine"
-	gaemail "appengine/mail"
+	"appengine/mail"
 
 	"mailutil"
 )
@@ -37,13 +37,13 @@ func inboundMailHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Echo back your message.
-	respmsg := &gaemail.Message{
+	respmsg := &mail.Message{
 		Sender:  "Service sender <info@appid.appspotmail.com>",
 		To:      addrStr,
 		Subject: "Your message -- " + reqmsg.Header().Get("Subject"),
 		Body:    reqmsg.String(),
 	}
-	if err := gaemail.Send(c, respmsg); err != nil {
+	if err := mail.Send(c, respmsg); err != nil {
 		c.Errorf("Couldn't send email: %v", err)
 	}
 }
