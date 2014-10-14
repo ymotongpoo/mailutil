@@ -17,18 +17,20 @@ func (u UnsupportedMediaTypeError) Error() string {
 	return "Unsupported Media Type: " + u.mediatype
 }
 
-// MailMessage describes features all mail messages should have.
-type MailMessage interface {
-	String() string
-	Header() mail.Header
-}
-
+// UnsupportedTransferEncodingError is specific error expressing unsupported
+// Content-Transfer-Encoding.
 type UnsupportedTransferEncodingError struct {
 	transferencoding string
 }
 
 func (u UnsupportedTransferEncodingError) Error() string {
 	return "Unsupported Content Transfer Encoding: " + u.transferencoding
+}
+
+// MailMessage describes features all mail messages should have.
+type MailMessage interface {
+	String() string
+	Header() mail.Header
 }
 
 // HTMLMailMessage implements MailMessage where each part of multipart is decoded
@@ -40,7 +42,7 @@ type HTMLMailMessage struct {
 	html   []byte
 }
 
-// String returns text in text/plain part in HTML message.
+// String returns text in text/plain part of multipart message in string.
 func (hm *HTMLMailMessage) String() string {
 	return string(hm.text)
 }
@@ -48,6 +50,16 @@ func (hm *HTMLMailMessage) String() string {
 // Header returns header part in HTML message.
 func (hm *HTMLMailMessage) Header() mail.Header {
 	return hm.header
+}
+
+// HTML returns text/html part decoded in UTF-8 in []byte.
+func (hm *HTMLMailMessage) HTML() []byte {
+	return hm.html
+}
+
+// Text returns text in text/plain part of multipart message in []byte.
+func (hm *HTMLMailMessage) Text() []byte {
+	return hm.text
 }
 
 // TextMailMessage implements MailMessage text message is decoded into UTF-8
@@ -65,6 +77,11 @@ func (tm *TextMailMessage) String() string {
 // Header returns header part in text message.
 func (tm *TextMailMessage) Header() mail.Header {
 	return tm.header
+}
+
+// Text returns text/plain part decoded in UTF-8.
+func (tm *TextMailMessage) Text() []byte {
+	return tm.text
 }
 
 // NewHTMLMail returns decoded HTML mail message.
@@ -103,6 +120,21 @@ func NewHTMLMail(msg *mail.Message, boundary string) (*HTMLMailMessage, error) {
 	}
 }
 
+// NewTextMail returns decoded text mail message.
 func NewTextMail(msg *mail.Message) (*TextMailMessage, error) {
-	return nil, nil // TODO(ymotongpoo): stub
+	_, params, err := mime.ParseMediaType(msg.Header.Get("Content-Type"))
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := DecodeText(msg.Body, params["charset"])
+	if err != nil {
+		return nil, err
+	}
+	t := &TextMailMessage{
+		body:   msg.Body,
+		header: msg.Header,
+		text:   data,
+	}
+	return t, nil
 }
