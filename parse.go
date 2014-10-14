@@ -36,11 +36,12 @@ func ParseMail(r io.Reader) (MailMessage, error) {
 	}
 }
 
-// parseTextPart
+// parseTextPart parses text/plain part in multipart message.
 func parseTextPart(p *multipart.Part, charset string) ([]byte, error) {
 	return DecodeText(p, charset)
 }
 
+// parseHTMLPart parses text/html part in multipart message.
 func parseHTMLPart(p *multipart.Part, charset string) ([]byte, error) {
 	mt, _, err := mime.ParseMediaType(p.Header.Get("Content-Transfer-Encoding"))
 	if err != nil {
