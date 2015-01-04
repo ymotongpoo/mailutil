@@ -22,8 +22,8 @@ import (
 	"net/mail"
 	"strings"
 
-	"code.google.com/p/go.text/encoding/japanese"
-	"code.google.com/p/go.text/transform"
+	"golang.org/x/text/encoding/japanese"
+	"golang.org/x/text/transform"
 )
 
 // ParseMail parse general mail messages in r and returns HTMLMailMessage or
